@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+  </head>
+  <body>
+    <h2>Admin Dashboard</h2>
+    <button id="downloadResults">Download Results</button>
+    <br /><br />
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" id="dataset" name="dataset" required />
+      <button type="submit">Upload Dataset</button>
+    </form>
+    <br />
+    <button id="deleteDataset">Delete Dataset</button>
+    <script>
+      document
+        .getElementById("downloadResults")
+        .addEventListener("click", async () => {
+          const token = localStorage.getItem("token");
+          const response = await fetch("/api/admin/download", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "results.csv";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+          } else {
+            alert("Failed to download results");
+          }
+        });
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const token = localStorage.getItem("token");
+          const formData = new FormData();
+          formData.append(
+            "dataset",
+            document.getElementById("dataset").files[0]
+          );
+
+          const response = await fetch("/api/admin/upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            alert(data.message);
+          } else {
+            alert(data.message);
+          }
+        });
+
+      document
+        .getElementById("deleteDataset")
+        .addEventListener("click", async () => {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch("/api/admin/delete", {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            alert(data.message);
+          } else {
+            alert(data.message);
+          }
+        });
+    </script>
+  </body>
+</html>
